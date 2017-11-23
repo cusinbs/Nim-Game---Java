@@ -14,14 +14,15 @@ import java.util.Scanner;
  * @author Sin
  */
 public class Nim {
-    private int[] nimBoard = {8,3,7,4};
+    private int[] nimBoard;
     private Scanner input = new Scanner(System.in);
+    
     public Nim(){
-        createNim();
+        createNimBoard(); //constructor to create the nim stacks
     }
     
     
-    public void createNim(){
+    private void createNimBoard(){ //Initialized the Nim Board with a random stack of number and random number of tokens on each stack
         Random rand = new Random();
         int numStack = rand.nextInt(8) + 3;
         nimBoard = new int[numStack];
@@ -31,48 +32,69 @@ public class Nim {
         }
     }
     
-    public void PvP(){
-        int heap, token,countTurn =0, player;
+    public void PvP(){ //Player vs Player
+        System.out.println("Enter number of players: "); //Get number of people will participate
+        int numberOfPlayers = input.nextInt();
+        System.out.println("\nGame Start!"); 
+        int countTurn =0, player;
         do{
-            display();
-            player = (countTurn%2) +1;
-            System.out.println("Player " + player + "'s turn:");
-            humanMove();
-            countTurn++;
-        }while(checkEndGame());
-        System.out.println("Player " + player + " lost!");
+            display(); //display the Nim stacks
+            player = (countTurn%numberOfPlayers) +1; // calculate which player's turn and stored it to player variable
+            System.out.println("\nPlayer " + player + "'s turn:");
+            humanMove(); // get move from user(s)
+            countTurn++; //number of turn
+        }while(!checkEndGame());//check if total token in the stacks is smaller than or equal 0
+        System.out.println("\nPlayer " + player + " lost!"); // print out who lost
     }
     
-    public void PvC(){
-        String player;
+    public void PvC(){ //Player vs Computer
+        System.out.println("\nGame Start!"); 
         Random rand = new Random();
-        int goFirst = rand.nextInt(2);
-        if(goFirst == 1){
+        int goFirst = rand.nextInt(2); //choose who goes first.
+        //int goFirst=0;
+        if(goFirst == 1){ // if goFirst = 1 means player goes first
+            System.out.println("\nPlayer goes first!");
+            do{
+                display(); //display stacks
+                humanMove(); //get move from player
+                if(checkEndGame()){ //check after each move, if end game is true then print the result and get out of the loop
+                    System.out.println("Player lost!");
+                    break;
+                }
+                display();
+                compMove(); //calculate move for computer
+                if(checkEndGame()){
+                    System.out.println("Computer lost!");
+                    break;
+                }
+            }while(true);
+        }else{ //if goFirst != 1 means computer goes first
+            System.out.println("\nComputer goes first!");
             do{
                 display();
-                humanMove();
-                display();
                 compMove();
-            }while(checkEndGame());
-            System.out.println("You lost");
-        }else{
-            do{
-                display();
-                compMove();
+                if(checkEndGame()){
+                    System.out.println("Computer lost!");
+                    break;
+                }
                 display();
                 humanMove();
-            }while(checkEndGame());
-            System.out.println("You lost");
+                if(checkEndGame()){
+                    System.out.println("Player lost!");
+                    break;
+                }
+            }while(true);
         }
     }
     
-    private boolean checkEndGame(){
-        if(totalToken()<=0)
-            return false;
-        return true;
+    private boolean checkEndGame(){ // if total tokens from stacks is 0, game is over
+        //System.out.println("Total token: " + totalToken());
+        if(totalToken()<=0) //call the totalToken function below
+            return true;
+        return false;
     }
     
-    private void display(){
+    private void display(){ //display the Nim's stacks
         for(int i = 0 ; i < nimBoard.length; i++){
             System.out.print(i+1 + ": ");
         for(int j = 0; j < nimBoard[i]; j ++){
@@ -82,39 +104,54 @@ public class Nim {
         }
     }
     
-    private void humanMove(){
+    private void humanMove(){//get move from players
         int heap,token;
-        System.out.print("Choose heap number: ");
-        heap = input.nextInt();
+        do{
+        System.out.print("\nChoose heap number: ");
+        heap = input.nextInt(); //get which heap
         System.out.print("Choose token number: ");
-        token = input.nextInt();
-        nimBoard[heap-1] -= token;
+        token = input.nextInt();//get how many token
+        if((heap > nimBoard.length) || (token > nimBoard[heap -1]) || token <= 0) //it'll be considered invalid if player choose heap out of bound/ number of token larger than token in that stack/ negative token
+            System.out.println("Invalid move! Try again");
+        }while(heap > nimBoard.length || token > nimBoard[heap -1] || token <= 0);//if input is invalid, start over again
+        nimBoard[heap-1] -= token; //after validate input, perform the action
     }
     
-    private void compMove(){
-        int nimSum = nimSum(), heapTakenIndex=0;
-        int smallestHeapSum = nimSum ^ nimBoard[0];
-        int numTokenTakeOff;
-        for(int i = 0; i < nimBoard.length; i++){
-            int temp = nimSum ^ nimBoard[i];
-            int tempTokenOff = nimBoard[i] - temp;
-            //System.out.println("Temp token off: " + tempTokenOff);
-            if((smallestHeapSum > temp) && (tempTokenOff<= nimBoard[i]) && tempTokenOff > 0){
-                heapTakenIndex = i;
-                smallestHeapSum = temp;
+    private void compMove(){ //Computer's move
+        boolean winningMoveAvailable = false; //bool var to check if there's a winning move
+        Random rand = new Random();
+        int heapTakenIndex=0; //var of which heap will have token taken
+        int numTokenTakeOff=0; //var of how many token will be taken
+        for(int i = 0; i < nimBoard.length; i++){ //loop goes through each stack
+            int tempNimSumEach = nimSum() ^ nimBoard[i]; //calculate NimSum of each stack
+            if(tempNimSumEach < nimBoard[i]){ //Find the first heap where the individual nim-sum is smaller than the heap size
+                numTokenTakeOff = nimBoard[i] - tempNimSumEach; //then subtract that heap'size with nimSum of that stack counters
+                heapTakenIndex = i; //get the index of the stack will be taken
+                winningMoveAvailable = true;//there is a move to win
+                break;
             }
         }
-        if(totalToken() == nimBoard[heapTakenIndex])
-            numTokenTakeOff = nimBoard[heapTakenIndex] - 1;
-        else
-            numTokenTakeOff = nimBoard[heapTakenIndex] - smallestHeapSum;
+        if(winningMoveAvailable){ //Since win move is available
+            if(totalToken() == nimSum())//Check if totalToken remain on the file equals to totalNimSum //this is the case where {0,0,1,2}
+                numTokenTakeOff = nimBoard[heapTakenIndex];//if yes take all the token from that column, i don't know the mathematical theory behind this. I just try a lot of cases and found this is the way to do it
+            
+            if(totalToken() == nimBoard[heapTakenIndex] && (nimBoard[heapTakenIndex] != 1)){//Check the case where nimBoard = {0,0,0,6}
+                numTokenTakeOff = nimBoard[heapTakenIndex] - 1; //just leave one token
+            }
+        }else{//if computer in losing position, it'll choose a valid random move
+            do{
+                heapTakenIndex = rand.nextInt(nimBoard.length);
+            }while(nimBoard[heapTakenIndex] <= 0);//choose valid random move
+            numTokenTakeOff = rand.nextInt(nimBoard[heapTakenIndex]) +1;
+        }
         
-        nimBoard[heapTakenIndex] -= numTokenTakeOff;
         
-        System.out.println("Computer took " + numTokenTakeOff + " from heap " + (heapTakenIndex+1));
+        nimBoard[heapTakenIndex] -= numTokenTakeOff; //perform the action
+        
+        System.out.println("Computer took " + numTokenTakeOff + " from heap " + (heapTakenIndex+1)); //print what action computer took
     }
     
-    private int nimSum(){
+    private int nimSum(){ //calculate total nim sum from stacks
         int nimSum = 0;
         for(int i = 0; i < nimBoard.length; i++){
             nimSum ^= nimBoard[i];
@@ -122,7 +159,7 @@ public class Nim {
         return nimSum;
     }
     
-    private int totalToken(){
+    private int totalToken(){ //calculate total token from stacks
         int total =0;
         for(int i = 0; i < nimBoard.length;i++){
             total += nimBoard[i];

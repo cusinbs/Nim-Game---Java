@@ -17,18 +17,16 @@ public class GroupProject2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //Scanner input = new Scanner(System.in);
+        System.out.println("Welcome to the Nim Game! Please choose a game mode!");
         int choice;
         Nim newGame = new Nim();
         do{
             choice = menu();
             switch(choice){
                 case 1:
-                    System.out.println("Game Start!");
                     newGame.PvP();
                     break;
                 case 2:
-                    System.out.println("Game Start!");
                     newGame.PvC();
                     break;
                 case 3:
