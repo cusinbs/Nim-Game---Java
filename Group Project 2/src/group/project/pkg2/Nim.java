@@ -131,22 +131,23 @@ public class Nim {
                 break;
             }
         }
+        
+        System.out.println(numTokenTakeOff);
         if(winningMoveAvailable){ //Since win move is available
-            if(totalToken() == nimSum())//Check if totalToken remain on the file equals to totalNimSum //this is the case where {0,0,1,2}
-                numTokenTakeOff = nimBoard[heapTakenIndex];//if yes take all the token from that column, i don't know the mathematical theory behind this. I just try a lot of cases and found this is the way to do it
-            
+            //System.out.println("Not random"); 
+            if(totalToken() == nimBoard[heapTakenIndex] + 1)
+                numTokenTakeOff = nimBoard[heapTakenIndex];
+
             if(totalToken() == nimBoard[heapTakenIndex] && (nimBoard[heapTakenIndex] != 1)){//Check the case where nimBoard = {0,0,0,6}
                 numTokenTakeOff = nimBoard[heapTakenIndex] - 1; //just leave one token
             }
+            nimBoard[heapTakenIndex] -= numTokenTakeOff; //perform the action
         }else{//if computer in losing position, it'll choose a valid random move
             do{
                 heapTakenIndex = rand.nextInt(nimBoard.length);
             }while(nimBoard[heapTakenIndex] <= 0);//choose valid random move
             numTokenTakeOff = rand.nextInt(nimBoard[heapTakenIndex]) +1;
         }
-        
-        
-        nimBoard[heapTakenIndex] -= numTokenTakeOff; //perform the action
         
         System.out.println("Computer took " + numTokenTakeOff + " from heap " + (heapTakenIndex+1)); //print what action computer took
     }
